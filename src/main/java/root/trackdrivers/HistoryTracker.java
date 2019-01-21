@@ -1,29 +1,35 @@
 package root.trackdrivers;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-public class HistoryTracker {
-	HashMap<String, Driver> driversList = new HashMap<String, Driver>();
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
+public class HistoryTracker {
+
+	public HashMap<String, Driver> getDriversList() {
+		return driversList;
+	}
+
+	final static Logger LOGGER = Logger.getLogger(HistoryTracker.class);
+	HashMap<String, Driver> driversList = new HashMap<String, Driver>();
+	
 	public String getOutputLine(Driver d) {
-		String output = d.avgSpeed > 0
-				? MessageFormat.format(AppConstants.WITH_MILES, d.getName(), Math.round(d.getTotalMiles()),
-						Math.round(d.getAvgSpeed()))
+		String output = d.avgSpeed > 0 ? MessageFormat.format(AppConstants.WITH_MILES, d.getName(),
+				Math.round(d.getTotalMiles()), Math.round(d.getAvgSpeed()))
 				: MessageFormat.format(AppConstants.WITHOUT_MILES, d.getName());
 		return output;
 	}
 
-	public void trackHistroy(String fileName) throws IOException, ParseException {
+	public List<String> trackHistroy(String fileName) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
 		String curLine;
 		String[] curLineData;
@@ -35,16 +41,16 @@ public class HistoryTracker {
 			} else if (AppConstants.TRIP_COMMAND.equals(curLineData[0])) {
 				addTripToDriver(curLineData[1], curLineData[2], curLineData[3], curLineData[4]);
 			} else {
-				System.out.println("EXCEPTION - INVALID COMMAND SKIPPING THIS LINE: " + curLine);
+				LOGGER.log(Level.WARN, "INVALID COMMAND SKIPPING THIS LINE: " + curLine);
 			}
 		}
 		reader.close();
-		printReport();
-
+		return formatReport();
 	}
 
-	private void printReport() throws ParseException {
+	public List<String> formatReport() {
 		List<Driver> driverTripDetails = new ArrayList<Driver>(driversList.values());
+		List<String> report = new ArrayList<String>();
 		for (Driver d : driverTripDetails) {
 			d.calculateAvgSpeedAndDistanceTravelled();
 		}
@@ -56,25 +62,25 @@ public class HistoryTracker {
 		});
 
 		for (Driver d : driverTripDetails) {
+			report.add(getOutputLine(d));
 			System.out.println(getOutputLine(d));
 		}
-
+		
+		return report;
 	}
 
-	private void addTripToDriver(String driverName, String strtTime, String endTime, String miles) throws ParseException {
+	public void addTripToDriver(String driverName, String strtTime, String endTime, String miles){
 		Driver tripDriver = driversList.get(driverName);
 		if (tripDriver != null) {
 			Trip newTrip = new Trip(strtTime, endTime, Double.parseDouble(miles));
-			if (newTrip.isTripValid()) {
-				tripDriver.addTripDetail(newTrip);
-			}
+			tripDriver.addTripDetail(newTrip);
 		} else {
-			System.out.println("EXCEPTION - DRIVER NOT REGISTERED");
+			LOGGER.log(Level.ERROR, "DRIVER NOT REGISTERED");
 		}
 
 	}
 
-	private void registerDriver(String driverName) {
+	public void registerDriver(String driverName) {
 		if (!driversList.containsKey(driverName)) {
 			Driver driver = new Driver(driverName);
 			driversList.put(driverName, driver);

@@ -1,13 +1,12 @@
 package root.trackdrivers;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 
 public class Driver {
 	String name;
-	ArrayList<Trip> tripDetails = new ArrayList<Trip>();
 	double totalMiles;
 	double avgSpeed;
+	private ArrayList<Trip> tripDetails = new ArrayList<Trip>();
 
 	public Driver(String driverName) {
 		this.name = driverName;
@@ -19,8 +18,10 @@ public class Driver {
 		return name;
 	}
 
-	public void addTripDetail(Trip tripDetail) {
-		this.tripDetails.add(tripDetail);
+	public void addTripDetail(Trip tr) {
+		if (tr.isTripValid()) {
+			this.tripDetails.add(tr);
+		}
 	}
 
 	public double getTotalMiles() {
@@ -31,15 +32,15 @@ public class Driver {
 		return avgSpeed;
 	}
 
-	public void calculateAvgSpeedAndDistanceTravelled() throws ParseException {
-		
+	public void calculateAvgSpeedAndDistanceTravelled() {
+
 		double distanceTravelled = 0d;
 		double timetravelled = 0d;
 
 		if (!this.tripDetails.isEmpty()) {
 			for (Trip e : this.tripDetails) {
-				distanceTravelled += e.distance;
-				timetravelled += e.getTimeinMins();
+				distanceTravelled += e.getDistance();
+				timetravelled += e.getTimeInMins();
 			}
 			this.avgSpeed = (distanceTravelled / timetravelled) * AppConstants.VALUE_OF_HOUR_IN_MIN;
 			this.totalMiles = distanceTravelled;

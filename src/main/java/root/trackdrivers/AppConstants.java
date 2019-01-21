@@ -9,6 +9,7 @@ public class AppConstants {
 	public static final int ALLOWED_LOWER_MPH = 5;
 	public static final int ALLOWED_UPPER_MPH = 100;
 	
+	public static final int DEFAULT_TIME_FOR_TRIP = 0;
 	
 	public static final String DRIVER_COMMAND = "Driver";
 	public static final String TRIP_COMMAND = "Trip";
